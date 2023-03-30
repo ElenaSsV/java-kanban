@@ -4,13 +4,13 @@ package TaskTracker.model;
 public class Task {
     private String name;
     private String description;
-    private int iD;
+    private int id;
     private String status;
 
-    public Task(String name, String description, int iD, String status) {
+    public Task(String name, String description, int id, String status) {
         this.name = name;
         this.description = description;
-        this.iD = iD;
+        this.id = id;
         this.status = status;
     }
 
@@ -31,11 +31,11 @@ public class Task {
     }
 
     public int getId() {
-        return iD;
+        return id;
     }
 
-    public void setId(int iD) {
-        this.iD = iD;
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getStatus() {
@@ -51,7 +51,7 @@ public class Task {
         return "Task{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", iD=" + iD +
+                ", id=" + id +
                 ", status='" + status + '\'' +
                 '}';
     }

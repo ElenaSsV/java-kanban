@@ -11,23 +11,29 @@ public class Main {
         Manager manager = new Manager();
 
         String status = "";
-        int iD = 0;
+        int id = 0;
 
         manager.createEpic(new Epic("Workshop on 6 April",
-                "Organise a workshop for 20 people", iD, status, new ArrayList<>()));
+                "Organise a workshop for 20 people", id, status, new ArrayList<>()));
+
         manager.createSubtask(new Subtask("Find venue",
-                "Find suitable venue", iD, status, 1));
-        manager.createSubtask(new Subtask("Organise catering", "Find a company", iD, status,
+                "Find suitable venue", id, status, 1));
+        manager.createSubtask(new Subtask("Organise catering", "Find a company", id, status,
                 1));
+
         System.out.println(manager.getAllEpics());
         System.out.println(manager.getAllSubtasks());
+
         manager.updateSubtask(new Subtask("Organise catering", "Find a company", 3,
-                "DONE", 1));
+                "IN PROGRESS", 1));
         manager.updateSubtask(new Subtask("Find venue",
                 "Find suitable venue", 2, "DONE", 1));
+
         System.out.println(manager.getAllEpics());
         System.out.println(manager.getAllSubtasks());
+
         manager.removeSubtaskById(3);
+
         System.out.println(manager.getAllEpics());
         System.out.println(manager.getAllSubtasks());
 
