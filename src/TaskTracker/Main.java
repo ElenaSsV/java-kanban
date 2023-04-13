@@ -9,17 +9,17 @@ public class Main {
     public static void main(String[] args) {
 
         TaskManager manager = Managers.getDefault();
-        HistoryManager historyManager = new InMemoryHistoryManager();
+        HistoryManager historyManager = Managers.getDefaultHistory();
 
         Status status = null;
         int id = 0;
 
-        manager.createTask(new Epic("Workshop on 6 April",
+        manager.createEpic(new Epic("Workshop on 6 April",
                 "Organise a workshop for 20 people", id, status, new ArrayList<>()));
 
-        manager.createTask(new Subtask("Find venue",
+        manager.createSubtask(new Subtask("Find venue",
                 "Find suitable venue", id, status, 1));
-        manager.createTask(new Subtask("Organise catering", "Find a company", id, status,
+        manager.createSubtask(new Subtask("Organise catering", "Find a company", id, status,
                 1));
 
         System.out.println(manager.getAllEpics());

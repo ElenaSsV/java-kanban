@@ -1,8 +1,4 @@
 package TaskTracker.service;
-import TaskTracker.model.*;
-
-
-import java.util.List;
 
 public final class Managers {
 
@@ -10,8 +6,8 @@ public final class Managers {
         return new InMemoryTaskManager();
     }
 
-    public static List<Task> getDefaultHistory() {
-        return InMemoryHistoryManager.viewedTasks;
+    public static HistoryManager getDefaultHistory() {
+        return new InMemoryHistoryManager();
     }
 
 }

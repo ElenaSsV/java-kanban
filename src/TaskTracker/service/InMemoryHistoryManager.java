@@ -1,5 +1,4 @@
 package TaskTracker.service;
-
 import TaskTracker.model.Task;
 
 import java.util.ArrayList;
@@ -21,6 +20,6 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public List<Task> getHistory() {
-        return  Managers.getDefaultHistory();
+        return viewedTasks;
     }
 }
