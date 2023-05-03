@@ -21,25 +21,19 @@ public class Main {
                 "Find suitable venue", id, status, 1));
         manager.createSubtask(new Subtask("Organise catering", "Find a company", id, status,
                 1));
+        manager.createEpic(new Epic("Project peach",
+                "Complete project", id, status, new ArrayList<>()));
 
-        System.out.println(manager.getAllEpics());
-//        manager.updateTask(new Subtask("Organise catering", "Find a company", 3,
-//                 Status.IN_PROGRESS, 1));
-//        manager.updateSubtask(new Subtask("Find venue", "Find suitable venue", 2, Status.DONE, 1));
-//
         manager.getSubtaskById(2);
-        manager.getEpicById(1);
-        manager.getEpicById(1);
-        manager.getEpicById(1);
-        manager.getEpicById(1);
-        manager.getEpicById(1);
-        manager.getEpicById(1);
-        manager.getEpicById(1);
-        manager.getEpicById(1);
-        manager.getEpicById(1);
-        System.out.println(historyManager.getHistory());
         manager.getSubtaskById(3);
-        manager.getSubtaskById(2);
+        manager.getEpicById(1);
+        manager.getEpicById(4);
+        manager.getSubtaskById(3);
+
+        //manager.removeAllEpics();
+       // manager.removeAllSubtasks();
+        manager.removeEpicById(4);
+       // manager.removeSubtaskById(2);
         System.out.println(historyManager.getHistory());
     }
 }
