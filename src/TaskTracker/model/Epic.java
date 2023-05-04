@@ -1,20 +1,20 @@
 package TaskTracker.model;
 
+import java.util.List;
 import java.util.ArrayList;
 
 public class Epic extends Task {
-    private ArrayList<Integer> subtaskIds;
+    private List<Integer> subtaskIds = new ArrayList<>();
 
-    public Epic(String name, String description, int id, Status status, ArrayList<Integer> subtaskIds) {
-        super(name, description, id, status);
-        this.subtaskIds = subtaskIds;
+    public Epic(String name, String description) {
+        super(name, description, Status.NEW);
     }
 
-    public ArrayList<Integer> getSubtaskIds() {
+    public List<Integer> getSubtaskIds() {
         return subtaskIds;
     }
 
-    public void setSubtasks(ArrayList<Integer> subtasks) {
+    public void setSubtasks(List<Integer> subtasks) {
         this.subtaskIds = subtasks;
     }
 

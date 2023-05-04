@@ -9,23 +9,25 @@ import java.util.Map;
 
 public class InMemoryHistoryManager implements HistoryManager {
 
-    private static CustomLinkedList<Task> viewedTasks = new CustomLinkedList<>();
-    private static Map<Integer, Node<Task>> nodesToDel = new HashMap<>();
+    private final CustomLinkedList<Task> viewedTasks = new CustomLinkedList<>();
+    private final Map<Integer, Node<Task>> nodeMap = new HashMap<>();
 
     @Override
     public void addTask(Task task) {
-     if (nodesToDel.containsKey(task.getId())) {
+     if (nodeMap.containsKey(task.getId())) {
          remove(task.getId());
         }
      Node<Task> node = viewedTasks.linkLast(task);
-     nodesToDel.put(task.getId(), node);
+     nodeMap.put(task.getId(), node);
     }
 
     @Override
     public void remove (int id) {
-        Node<Task> node = nodesToDel.get(id);
-        viewedTasks.removeNode(node);
-        nodesToDel.remove(id);
+        if (!nodeMap.containsKey(id)) {
+            return;
+        }
+        viewedTasks.removeNode(nodeMap.get(id));
+        nodeMap.remove(id);
     }
 
     @Override
@@ -38,13 +40,12 @@ public class InMemoryHistoryManager implements HistoryManager {
         Node<T> tail;
 
         private Node<T> linkLast(T element) {
-          final Node<T> oldTail = tail;
-          final Node<T> newNode = new Node(tail, element, null);
-          tail = newNode;
-          if (oldTail == null)
+          final Node<T> newNode = new Node<T>(tail, element, null);
+          if (tail == null)
               head = newNode;
           else
-              oldTail.setNext(newNode);
+              tail.setNext(newNode);
+          tail = newNode;
           return newNode;
         }
 
