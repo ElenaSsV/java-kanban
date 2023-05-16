@@ -15,7 +15,7 @@ public interface TaskManager {
 
     void createSubtask(Subtask subtask);
 
-    void updateTask(Task value);
+    void updateTask(Task task);
 
     void updateEpic(Epic epic);
 

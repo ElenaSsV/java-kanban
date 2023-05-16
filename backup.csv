@@ -1,0 +1,7 @@
+id,type,name,status,description,epic
+1,EPIC,Workshop on 6 April,IN_PROGRESS,Organise a workshop for 20 people,
+4,EPIC,Project peach,NEW,Complete project,
+2,SUBTASK,Find venue,NEW,Find suitable venue,1
+3,SUBTASK,Organise catering,DONE,Find a company,1
+
+1,3
