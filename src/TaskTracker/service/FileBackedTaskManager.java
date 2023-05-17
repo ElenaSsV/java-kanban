@@ -10,7 +10,7 @@ import java.util.List;
 
 
 public class FileBackedTaskManager extends InMemoryTaskManager implements TaskManager {
-    String filename;
+    private String filename;
 
     public FileBackedTaskManager(String filename) {
         this.filename = filename;
@@ -32,9 +32,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
             }
 
             writer.write("\n");
-            writer.write(historyToString(getHistoryManager()));
+            writer.write(historyToString(historyManager));
         } catch (IOException e) {
-            throw new ManagerSaveException();
+            throw new ManagerSaveException("Ошибка записи", e);
         }
     }
 
@@ -43,16 +43,21 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
 
         String content = manager.readFileContentsOrNull(file.getPath());
         String[] lines = content.split("\n");
+        int maxId = 0;
 
         for (int i = 1; i < lines.length-2; i++) {
             Task task = manager.fromString(lines[i]);
             manager.addTaskFromFile(task);
+            if (task.getId() > maxId) {
+                maxId = task.getId();
+            }
 
             List<Integer> viewedTasksIds = historyFromString(lines[lines.length-1]);
             if (viewedTasksIds.contains(task.getId())) {
-                manager.getHistoryManager().addTask(task);
+                manager.historyManager.addTask(task);
             }
         }
+        manager.id = maxId;
         return manager;
     }
 
@@ -60,8 +65,21 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         try {
             return Files.readString(Path.of(path));
         } catch (IOException e) {
-            System.out.println("Невозможно прочитать файл.");
-            return null;
+            throw new ManagerSaveException("Не удается считать файл", e);
+        }
+    }
+
+    private void addTaskFromFile(Task task) {
+        if (task instanceof Epic) {
+            Epic epic = (Epic) task;
+            epics.put(task.getId(), epic);
+        } else if (task instanceof Subtask) {
+            Subtask subtask = (Subtask) task;
+            subtasks.put(subtask.getId(), subtask);
+            epics.get(subtask.getEpicId()).getSubtaskIds().add(subtask.getId());
+            updateEpicStatus(subtask.getEpicId());
+        } else {
+            tasks.put(task.getId(), task);
         }
     }
 
@@ -227,30 +245,30 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
     }
 
     public static void main(String[] args) {
-        FileBackedTaskManager manager = new FileBackedTaskManager("backup.csv");
-        InMemoryTaskManager memoryManager = new InMemoryTaskManager();
-
-        manager.createEpic(new Epic("Workshop on 6 April",
-                "Organise a workshop for 20 people"));
-        manager.createSubtask(new Subtask("Find venue",
-                "Find suitable venue", Status.NEW, 1));
-        manager.createSubtask(new Subtask("Organise catering", "Find a company", Status.NEW,
-                1));
-        manager.createEpic(new Epic("Project peach",
-                "Complete project"));
-        Subtask subtask = new Subtask("Organise catering", "Find a company", Status.DONE,
-                1);
-        subtask.setId(3);
-        manager.updateSubtask(subtask);
-
-        manager.getEpicById(1);
-        manager.getSubtaskById(3);
-
-//        File file = new File ("backup.csv");
-//        FileBackedTaskManager fileBackedTaskManager = loadFromFile(file);
+//        FileBackedTaskManager manager = new FileBackedTaskManager("backup.csv");
+//        InMemoryTaskManager memoryManager = new InMemoryTaskManager();
 //
-//        System.out.println(fileBackedTaskManager.getAllEpics());
-//        System.out.println(fileBackedTaskManager.getHistory());
+//        manager.createEpic(new Epic("Workshop on 6 April",
+//                "Organise a workshop for 20 people"));
+//        manager.createSubtask(new Subtask("Find venue",
+//                "Find suitable venue", Status.NEW, 1));
+//        manager.createSubtask(new Subtask("Organise catering", "Find a company", Status.NEW,
+//                1));
+//        manager.createEpic(new Epic("Project peach",
+//                "Complete project"));
+//        Subtask subtask = new Subtask("Organise catering", "Find a company", Status.DONE,
+//                1);
+//        subtask.setId(3);
+//        manager.updateSubtask(subtask);
+//
+//        manager.getEpicById(1);
+//        manager.getSubtaskById(3);
+
+        File file = new File ("backup.csv");
+        FileBackedTaskManager fileBackedTaskManager = loadFromFile(file);
+
+        System.out.println(fileBackedTaskManager.getAllEpics());
+        System.out.println(fileBackedTaskManager.getHistory());
 
     }
 }

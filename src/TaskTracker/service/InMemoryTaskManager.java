@@ -13,13 +13,13 @@ import java.util.Map;
 
 public class InMemoryTaskManager implements TaskManager {
 
-    private final Map<Integer, Task> tasks = new HashMap<>();
-    private final Map<Integer, Epic> epics = new HashMap<>();
-    private final Map<Integer, Subtask> subtasks = new HashMap<>();
+    protected final Map<Integer, Task> tasks = new HashMap<>();
+    protected final Map<Integer, Epic> epics = new HashMap<>();
+    protected final Map<Integer, Subtask> subtasks = new HashMap<>();
 
-    private final HistoryManager historyManager = Managers.getDefaultHistory();
+    protected final HistoryManager historyManager = Managers.getDefaultHistory();
 
-    private int id = 1;
+    protected int id = 1;
 
     @Override
     public void createTask(Task task) {
@@ -174,7 +174,7 @@ public class InMemoryTaskManager implements TaskManager {
         return historyManager.getHistory();
     }
 
-    private void updateEpicStatus(int epicId) {
+    protected void updateEpicStatus(int epicId) {
 
         int countNew = 0;
         int countDone = 0;
@@ -206,23 +206,6 @@ public class InMemoryTaskManager implements TaskManager {
             epic.setStatus(Status.IN_PROGRESS);
         }
     }
-
-    public HistoryManager getHistoryManager() {
-        return historyManager;
-    }
-
-    public void addTaskFromFile(Task task) {
-        if (task instanceof Epic) {
-            Epic epic = (Epic) task;
-            epics.put(task.getId(), epic);
-        } else if (task instanceof Subtask) {
-            Subtask subtask = (Subtask) task;
-            subtasks.put(subtask.getId(), subtask);
-            epics.get(subtask.getEpicId()).getSubtaskIds().add(subtask.getId());
-            updateEpicStatus(subtask.getEpicId());
-        } else {
-            tasks.put(task.getId(), task);
-        }
-    }
+    
 }
 
