@@ -5,15 +5,16 @@ import TaskTracker.model.Subtask;
 import TaskTracker.model.Task;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public interface TaskManager {
 
-    void createTask(Task task);
+    int createTask(Task task);
 
-    void createEpic(Epic epic);
+    int createEpic(Epic epic);
 
-    void createSubtask(Subtask subtask);
+    int createSubtask(Subtask subtask);
 
     void updateTask(Task task);
 

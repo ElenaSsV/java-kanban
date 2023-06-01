@@ -40,12 +40,14 @@ public class InMemoryHistoryManager implements HistoryManager {
         Node<T> tail;
 
         private Node<T> linkLast(T element) {
-          final Node<T> newNode = new Node<T>(tail, element, null);
-          if (tail == null)
-              head = newNode;
-          else
-              tail.setNext(newNode);
-          tail = newNode;
+            final Node<T> newNode = new Node<T>(tail, element, null);
+            if (tail == null) {
+                head = newNode;
+            } else {
+                tail.setNext(newNode);
+            //tail = newNode;
+        }
+            tail = newNode;
           return newNode;
         }
 
@@ -60,12 +62,12 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
 
         private void removeNode(Node<T> node) {
-            if (node == head) {
+           if (node == head && head.getNext() != null) {
                 head = node.getNext();
                 head.setPrevious(null);
             } else if (node == tail) {
                 tail = node.getPrevious();
-                tail.setNext(null);
+               // tail.setNext(null);
             } else {
                 node.getPrevious().setNext(node.getNext());
                 node.getNext().setPrevious(node.getPrevious());
