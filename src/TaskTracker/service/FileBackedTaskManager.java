@@ -1,17 +1,21 @@
 package TaskTracker.service;
+
 import TaskTracker.model.*;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Optional;
 
 
 public class FileBackedTaskManager extends InMemoryTaskManager implements TaskManager {
@@ -228,24 +232,25 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
     }
 
     @Override
-    public Task getTaskById(int id) {
-        Task task = super.getTaskById(id);
+    public Optional<Task> getTaskById(int id) {
+        Optional<Task> task = super.getTaskById(id);
         save();
         return task;
     }
 
     @Override
-    public Epic getEpicById(int id) {
-        Epic epic = super.getEpicById(id);
+    public Optional<Epic> getEpicById(int id) {
+        Optional<Epic> epic = super.getEpicById(id);
         save();
         return epic;
     }
 
    @Override
-   public Subtask getSubtaskById(int id) {
-        Subtask subtask = super.getSubtaskById(id);
+   public Optional<Subtask> getSubtaskById(int id) {
+       Optional<Subtask> subtask = super.getSubtaskById(id);
         save();
         return subtask;
+
    }
 
     @Override

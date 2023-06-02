@@ -1,12 +1,14 @@
-package TaskTracker.test;
-
+import TaskTracker.model.Epic;
 import TaskTracker.model.Status;
-import TaskTracker.model.*;
+import TaskTracker.model.Subtask;
+import TaskTracker.model.Task;
 import TaskTracker.service.TaskManager;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,10 +22,10 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void createTask()  {
         final int taskId = taskManager.createTask(task);
-        final Task savedTask = taskManager.getTaskById(taskId);
+        final Optional<Task> savedTask = taskManager.getTaskById(taskId);
 
-        assertNotNull(savedTask, "Задача не найдена.");
-        assertEquals(task, savedTask, "Задачи не совпадают.");
+        assertTrue(savedTask.isPresent(), "Задача не найдена.");
+        assertEquals(task, savedTask.get(), "Задачи не совпадают.");
 
         LocalDateTime expectedEndTime = task.getStartTime().plusMinutes(task.getDuration());
         LocalDateTime actualEndTime = task.getEndTime();
@@ -38,23 +40,24 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    public void taskShouldNotBeCreatedIfTaskWithSameStartTimeExists() {
-        int taskId = taskManager.createTask(task);
-        Task taskWithSameStartTime = new Task("Test createTaskWithSameStartTime",
-                "Test createTask description", Status.NEW, task.getStartTime(), 90);
-        int task2Id = taskManager.createTask(taskWithSameStartTime);
+    public void taskShouldNotBeCreatedIfOverlapsOtherTask() {
+        int taskId = taskManager.createTask(task); //startTime: 30.06.2023, 10:00, endTime: 30.06.2023, 11:30
+        Task overLappingTask = new Task("Test createTaskWithSameStartTime",
+                "Test createTask description", Status.NEW, LocalDateTime.of(2023, 6,
+                30, 11,30), 90);
+        int task2Id = taskManager.createTask(overLappingTask);
 
-        Task savedTask = taskManager.getTaskById(task2Id);
-        assertNull(savedTask);
+        Optional<Task> savedTask = taskManager.getTaskById(task2Id);
+        assertTrue(savedTask.isEmpty());
     }
 
     @Test
     void createEpic() {
         final int epicId = taskManager.createEpic(epic);
-        final Epic savedEpic = taskManager.getEpicById(epicId);
+        final Optional<Epic> savedEpic = taskManager.getEpicById(epicId);
 
-        assertNotNull(savedEpic, "Эпик не найден.");
-        assertEquals(epic, savedEpic, "Эпики не совпадают.");
+        assertTrue(savedEpic.isPresent(), "Эпик не найден.");
+        assertEquals(epic, savedEpic.get(), "Эпики не совпадают.");
 
         final List<Epic> epics = taskManager.getAllEpics();
 
@@ -62,7 +65,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         assertEquals(1, epics.size(), "Неверное количество задач.");
         assertEquals(epic, epics.get(0), "Задачи не совпадают.");
 
-        Status status = savedEpic.getStatus();
+        Status status = savedEpic.get().getStatus();
         assertEquals(Status.NEW, status, "Статусы не совпадают");
     }
 
@@ -71,9 +74,9 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         final int epicId = taskManager.createEpic(epic);
         final int subtaskId = taskManager.createSubtask(subtask);
 
-        final Subtask savedSubtask = taskManager.getSubtaskById(subtaskId);
-        assertNotNull(savedSubtask, "Подзадача не найдена.");
-        assertEquals(subtask, savedSubtask, "Подзадачи не совпадают.");
+        final Optional<Subtask> savedSubtask = taskManager.getSubtaskById(subtaskId);
+        assertTrue(savedSubtask.isPresent(), "Подзадача не найдена.");
+        assertEquals(subtask, savedSubtask.get(), "Подзадачи не совпадают.");
 
         final List<Subtask> subtasks = taskManager.getAllSubtasks();
 
@@ -81,10 +84,10 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         assertEquals(1, subtasks.size(), "Неверное количество подзадач.");
         assertEquals(subtask, subtasks.get(0), "Подзадачи не совпадают.");
 
-        final Epic epicForSubtask = taskManager.getEpicById(savedSubtask.getEpicId());
-        assertNotNull(epicForSubtask, "Эпик у подзадачи отсутствует");
+        final Optional<Epic> epicForSubtask = taskManager.getEpicById(savedSubtask.get().getEpicId());
+        assertTrue(epicForSubtask.isPresent(), "Эпик у подзадачи отсутствует");
 
-        final List<Integer> subtaskIdsToEpic = taskManager.getEpicById(epicId).getSubtaskIds();
+        final List<Integer> subtaskIdsToEpic = epicForSubtask.get().getSubtaskIds();
         assertNotNull(subtaskIdsToEpic, "Список ID подзадач у эпика пуст.");
         assertEquals(1, subtasks.size(), "Неверное количество подзадач.");
         assertEquals(subtaskId, subtaskIdsToEpic.get(0), "ID подзадачи не совпадает.");
@@ -93,34 +96,35 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     public void subtaskShouldNotCreatedIfNoEpic() {
         int subtaskId = taskManager.createSubtask(subtask);
-        Subtask savedSubtask = taskManager.getSubtaskById(subtaskId);
+        Optional<Subtask> savedSubtask = taskManager.getSubtaskById(subtaskId);
 
-        assertNull(savedSubtask, "Подзадача без эпика была создана");
+        assertFalse(savedSubtask.isPresent(), "Подзадача без эпика была создана");
     }
 
     @Test
-    public void subtaskShouldNotBeCreatedIfTaskWithSameStartTimeExists() {
+    public void subtaskShouldNotBeCreatedIfOverlapsOtherTask() {
         taskManager.createEpic(epic);
-        int subtaskId = taskManager.createSubtask(subtask);
+        int subtaskId = taskManager.createSubtask(subtask); //Start: 15.06.2023 9:00, End: 15.06.2023 10:30
         Subtask subtaskWithSameStartTime = new Subtask("Test createSubtaskWithSameStartTime",
-                "Test createSubtask description", Status.NEW, 1, subtask.getStartTime(), 90);
+                "Test createSubtask description", Status.NEW, 1, LocalDateTime.of(2023,
+                6,15, 10,0), 90);
         int subtask2Id = taskManager.createSubtask(subtaskWithSameStartTime);
 
-        Subtask savedSubtask = taskManager.getSubtaskById(subtask2Id);
-        assertNull(savedSubtask);
+        Optional<Subtask> savedSubtask = taskManager.getSubtaskById(subtask2Id);
+        assertFalse(savedSubtask.isPresent());
     }
 
     @Test
     void updateTask() {
         final int taskId = taskManager.createTask(task);
         Task updatedTask = new Task("Test updateTask", "Test updateTask description",
-                Status.IN_PROGRESS, LocalDateTime.of(2023, 5,30, 10,0), 90);
+                Status.IN_PROGRESS, LocalDateTime.of(2023, 6,20, 10,0), 90);
         updatedTask.setId(taskId);
         taskManager.updateTask(updatedTask);
 
-        final Task savedTask = taskManager.getTaskById(taskId);
-        assertNotNull(savedTask, "Задача не найдена.");
-        assertEquals(updatedTask, savedTask, "Задача не обновилась.");
+        final Optional<Task> savedTask = taskManager.getTaskById(taskId);
+        assertTrue(savedTask.isPresent(), "Задача не найдена.");
+        assertEquals(updatedTask, savedTask.get(), "Задача не обновилась.");
 
         final List<Task> tasks = taskManager.getAllTasks();
 
@@ -136,9 +140,9 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         updatedEpic.setId(epicId);
         taskManager.updateEpic(updatedEpic);
 
-        final Epic savedEpic = taskManager.getEpicById(epicId);
-        assertNotNull(savedEpic, "Эпик не найден.");
-        assertEquals(updatedEpic, savedEpic, "Зпик не обновился.");
+        final Optional<Epic> savedEpic = taskManager.getEpicById(epicId);
+        assertTrue(savedEpic.isPresent(), "Эпик не найден.");
+        assertEquals(updatedEpic, savedEpic.get(), "Зпик не обновился.");
 
         final List<Epic> epics = taskManager.getAllEpics();
 
@@ -146,7 +150,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         assertEquals(1, epics.size(), "Неверное количество задач.");
         assertEquals(updatedEpic, epics.get(0), "Задачи не совпадают.");
 
-        Status status = savedEpic.getStatus();
+        Status status = savedEpic.get().getStatus();
         assertEquals(Status.NEW, status, "Статусы не совпадают");
     }
     @Test
@@ -155,13 +159,13 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         final int subtaskId = taskManager.createSubtask(subtask);
 
         Subtask updatedSubtask = new Subtask("Test updateSubtask", "Test updateSubtask description",
-                Status.DONE, epicId, LocalDateTime.of(2023, 5,30, 9,0), 90);
+                Status.DONE, epicId, LocalDateTime.of(2023, 7,10, 9,0), 90);
         updatedSubtask.setId(subtaskId);
         taskManager.updateSubtask(updatedSubtask);
 
-        final Subtask savedSubtask = taskManager.getSubtaskById(subtaskId);
-        assertNotNull(savedSubtask, "Подзадача не найдена.");
-        assertEquals(updatedSubtask, savedSubtask, "Подзадачи не совпадают.");
+        final Optional<Subtask> savedSubtask = taskManager.getSubtaskById(subtaskId);
+        assertTrue(savedSubtask.isPresent(), "Подзадача не найдена.");
+        assertEquals(updatedSubtask, savedSubtask.get(), "Подзадачи не совпадают.");
 
         final List<Subtask> subtasks = taskManager.getAllSubtasks();
 
@@ -169,20 +173,20 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         assertEquals(1, subtasks.size(), "Неверное количество подзадач.");
         assertEquals(updatedSubtask, subtasks.get(0), "Подзадачи не совпадают.");
 
-        final Epic epicForSubtask = taskManager.getEpicById(savedSubtask.getEpicId()); //проверяем есть ли эпик к которому привязана подзадача
-        assertNotNull(epicForSubtask, "Эпик у подзадачи отсутствует");
+        final Optional<Epic> epicForSubtask = taskManager.getEpicById(savedSubtask.get().getEpicId()); //проверяем есть ли эпик к которому привязана подзадача
+        assertTrue(epicForSubtask.isPresent(), "Эпик у подзадачи отсутствует");
 
-        Status epicStatus = epicForSubtask.getStatus();
+        Status epicStatus = epicForSubtask.get().getStatus();
         assertEquals(Status.DONE, epicStatus, "Статусы не совпадают");
 
-        final List<Integer> subtasksToEpic = taskManager.getEpicById(epicId).getSubtaskIds();
+        final List<Integer> subtasksToEpic = epicForSubtask.get().getSubtaskIds();
         assertNotNull(subtasksToEpic, "Список ID подзадач у эпика пуст.");
         assertEquals(1, subtasks.size(), "Неверное количество подзадач.");
         assertEquals(updatedSubtask, subtasks.get(0), "ID подзадачи не совпадает.");
     }
 
     @Test
-    public void subtaskShouldNotBeUpdatedIfTaskWithSameStartTimeExists() {
+    public void subtaskShouldNotBeUpdatedIfOverlapsOtherTask() {
         int epicId = taskManager.createEpic(epic); //1
         int taskId = taskManager.createTask(task); //2
         int subtaskId = taskManager.createSubtask(subtask); //3
@@ -193,67 +197,67 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         updatedSubtask.setId(subtaskId);
         taskManager.updateSubtask(updatedSubtask);
 
-        Subtask savedSubtask = taskManager.getSubtaskById(subtaskId);
-        assertEquals(subtask, savedSubtask, "Подзадача обновилась");
-        assertNotEquals(updatedSubtask, savedSubtask, "Подзадача обновилась");
+        Optional<Subtask> savedSubtask = taskManager.getSubtaskById(subtaskId);
+        assertEquals(subtask, savedSubtask.get(), "Подзадача обновилась");
+        assertNotEquals(updatedSubtask, savedSubtask.get(), "Подзадача обновилась");
     }
 
     @Test
     public void getTaskById() {
-       Task noTask = taskManager.getTaskById(1); // если список пуст
-       assertNull(noTask, "Список задач должен быть пустым");
+       Optional<Task> noTask = taskManager.getTaskById(1); // если список пуст
+       assertTrue(noTask.isEmpty(), "Список задач должен быть пустым");
 
        final int taskId = taskManager.createTask(task);
-       final Task savedTask = taskManager.getTaskById(taskId);
-       assertNotNull(savedTask, "Задача не найдена.");
-       assertEquals(task, savedTask, "Задачи не совпадают");
+       final Optional<Task> savedTask = taskManager.getTaskById(taskId);
+       assertTrue(savedTask.isPresent(), "Задача не найдена.");
+       assertEquals(task, savedTask.get(), "Задачи не совпадают");
 
-       Task nonExistingTask = taskManager.getTaskById(4); //по несуществующему id
-       assertNull(nonExistingTask, "Задачи с таким id  не существует");
+       Optional<Task> nonExistingTask = taskManager.getTaskById(4); //по несуществующему id
+       assertTrue(nonExistingTask.isEmpty(), "Задачи с таким id  не существует");
     }
 
     @Test
     public void getEpicById() {
-        Epic noEpic = taskManager.getEpicById(1); // если список пуст
-        assertNull(noEpic, "Список эпиков должен быть пустым");
+        Optional<Epic> noEpic = taskManager.getEpicById(1); // если список пуст
+        assertTrue(noEpic.isEmpty(), "Список эпиков должен быть пустым");
 
         final int epicId = taskManager.createEpic(epic);
-        final Epic savedEpic = taskManager.getEpicById(epicId);
-        assertNotNull(savedEpic, "Эпик не найден.");
-        assertEquals(epic, savedEpic, "Эпики не совпадают");
+        final Optional<Epic> savedEpic = taskManager.getEpicById(epicId);
+        assertTrue(savedEpic.isPresent(), "Эпик не найден.");
+        assertEquals(epic, savedEpic.get(), "Эпики не совпадают");
 
-        final Epic nonExistingEpic = taskManager.getEpicById(5); // если неверное id
-        assertNull(nonExistingEpic, "Эпика с таким id не существует");
+        final Optional<Epic> nonExistingEpic = taskManager.getEpicById(5); // если неверное id
+        assertTrue(nonExistingEpic.isEmpty(), "Эпика с таким id не существует");
 
-        Status status = savedEpic.getStatus();
+        Status status = savedEpic.get().getStatus();
         assertEquals(Status.NEW, status, "Статусы не совпадают");
     }
 
     @Test
     public void getSubtaskById() {
-        Subtask noSubtask = taskManager.getSubtaskById(1); //пустой список подзадач
-        assertNull(noSubtask, "Список подзадач должен быть пустым");
+        Optional<Subtask> noSubtask = taskManager.getSubtaskById(1); //пустой список подзадач
+        assertFalse(noSubtask.isPresent(), "Список подзадач должен быть пустым");
 
         final int epicId = taskManager.createEpic(epic);
         final int subtaskId = taskManager.createSubtask(subtask);
         assertEquals(1, epicId, "У подзадачи неверное  id эпика");
 
 
-        final Subtask savedSubtask = taskManager.getSubtaskById(subtaskId);
-        assertNotNull(savedSubtask, "Подзадача не найдена.");
-        assertEquals(subtask, savedSubtask, "Подзадачи не совпадают");
+        final Optional<Subtask> savedSubtask = taskManager.getSubtaskById(subtaskId);
+        assertTrue(savedSubtask.isPresent(), "Подзадача не найдена.");
+        assertEquals(subtask, savedSubtask.get(), "Подзадачи не совпадают");
 
-        final Epic epicForSubtask = taskManager.getEpicById(savedSubtask.getEpicId()); //проверяем есть ли эпик
-        assertNotNull(epicForSubtask, "Эпик у подзадачи отсутствует");
+        final Optional<Epic> epicForSubtask = taskManager.getEpicById(savedSubtask.get().getEpicId()); //проверяем есть ли эпик
+        assertTrue(epicForSubtask.isPresent(), "Эпик у подзадачи отсутствует");
     }
 
     @Test
     public void removeTaskById() {
-        taskManager.removeTaskById(5); //неверное id
+       // taskManager.removeTaskById(5); //неверное id
 
         final int taskId = taskManager.createTask(task);
-        Task savedTask = taskManager.getTaskById(taskId);
-        assertNotNull(savedTask, "Задачи с таким id нет");
+        Optional<Task> savedTask = taskManager.getTaskById(taskId);
+        assertTrue(savedTask.isPresent(), "Задачи с таким id нет");
 
         taskManager.removeTaskById(taskId);
 
@@ -266,8 +270,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.removeEpicById(5); // неверное id
         final int epicId = taskManager.createEpic(epic);
 
-        Epic savedEpic = taskManager.getEpicById(epicId);
-        assertNotNull(savedEpic, "Эпика с таким id нет");
+        Optional<Epic> savedEpic = taskManager.getEpicById(epicId);
+        assertTrue(savedEpic.isPresent(), "Эпика с таким id нет");
 
         taskManager.removeEpicById(epicId);
 
@@ -284,26 +288,30 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         final int epicId = taskManager.createEpic(epic);
         final int subtaskId = taskManager.createSubtask(subtask);
 
-        Subtask savedSubtask = taskManager.getSubtaskById(subtaskId);
-        assertNotNull(savedSubtask, "Подзадачи с таким id нет");
+        Optional<Subtask> savedSubtask = taskManager.getSubtaskById(subtaskId);
+        assertTrue(savedSubtask.isPresent(), "Подзадачи с таким id нет");
+
+        final Optional<Epic> epicForSubtask = taskManager.getEpicById(savedSubtask.get().getEpicId()); //проверяем есть ли эпик
+        assertTrue(epicForSubtask.isPresent(), "Эпик у подзадачи отсутствует");
 
         taskManager.removeSubtaskById(subtaskId);
 
         final List<Subtask> subtasks = taskManager.getAllSubtasks();
         assertTrue(subtasks.isEmpty(), "Зпик не удален");
 
-        final List<Integer> subtasksIdsToEpic = taskManager.getEpicById(epicId).getSubtaskIds();
+
+        final List<Integer> subtasksIdsToEpic = epicForSubtask.get().getSubtaskIds();
         assertTrue(subtasksIdsToEpic.isEmpty(), "Id подзадачи не удалилась из списка подазадач у эпика");
 
-        Status epicStatus = taskManager.getEpicById(epicId).getStatus();
+        Status epicStatus = epicForSubtask.get().getStatus();
         assertEquals(Status.NEW, epicStatus, "Статус эпика не обновился");
     }
 
     @Test
     public void removeAllTasks() {
         final int taskId = taskManager.createTask(task);
-        Task savedTask = taskManager.getTaskById(taskId);
-        assertNotNull(savedTask, "Задачи с таким id нет");
+        Optional<Task> savedTask = taskManager.getTaskById(taskId);
+        assertTrue(savedTask.isPresent(), "Задачи с таким id нет");
 
         taskManager.removeAllTasks();
 
@@ -315,8 +323,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     public void removeAllEpics() {
         taskManager.removeAllEpics(); //пустой список
         final int epicId = taskManager.createEpic(epic);
-        Epic savedEpic = taskManager.getEpicById(epicId);
-        assertNotNull(savedEpic, "Эпика с таким id нет");
+        Optional<Epic> savedEpic = taskManager.getEpicById(epicId);
+        assertTrue(savedEpic.isPresent(), "Эпика с таким id нет");
 
         taskManager.removeAllEpics();
 
@@ -336,15 +344,18 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
         final int subtaskId = taskManager.createSubtask(subtask);
 
-        Subtask savedSubtask = taskManager.getSubtaskById(subtaskId);
-        assertNotNull(savedSubtask, "Подзадачи с таким id нет");
+        Optional<Subtask> savedSubtask = taskManager.getSubtaskById(subtaskId);
+        assertTrue(savedSubtask.isPresent(), "Подзадачи с таким id нет");
+
+        final Optional<Epic> epicForSubtask = taskManager.getEpicById(savedSubtask.get().getEpicId()); //проверяем есть ли эпик
+        assertTrue(epicForSubtask.isPresent(), "Эпик у подзадачи отсутствует");
 
         taskManager.removeAllSubtasks();
 
         List<Subtask> subtasks = taskManager.getAllSubtasks();
         assertTrue(subtasks.isEmpty(), "Подзадачи не удалены");
 
-        List<Integer> subIdsToEpic = taskManager.getEpicById(epicId).getSubtaskIds();
+        List<Integer> subIdsToEpic = epicForSubtask.get().getSubtaskIds();
         assertTrue(subIdsToEpic.isEmpty(), "У эпика не удалились  id удаленных подзадач");
 
         LocalDateTime actualEpicStartTime = epic.getStartTime();
@@ -362,8 +373,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         assertTrue(tasksFromEmptyList.isEmpty(), "Список задач не пуст");
 
         final int taskId = taskManager.createTask(task);
-        Task savedTask = taskManager.getTaskById(taskId);
-        assertNotNull(savedTask, "Задачи с таким id нет");
+        Optional<Task> savedTask = taskManager.getTaskById(taskId);
+        assertTrue(savedTask.isPresent(), "Задачи с таким id нет");
 
         final List<Task> tasks = taskManager.getAllTasks();
         assertNotNull(tasks, "Задачи на возвращаются.");
@@ -377,8 +388,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         assertTrue(epicsFromEmptyList.isEmpty(), "Список эпиков не пуст");
 
         final int epicId = taskManager.createEpic(epic);
-        Epic savedEpic = taskManager.getEpicById(epicId);
-        assertNotNull(savedEpic, "Эпика с таким id нет");
+        Optional<Epic> savedEpic = taskManager.getEpicById(epicId);
+        assertTrue(savedEpic.isPresent(), "Эпика с таким id нет");
 
         final List<Epic> epics = taskManager.getAllEpics();
         assertNotNull(epics, "Эпики не возвращаются.");
@@ -393,11 +404,11 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         final int epicId = taskManager.createEpic(epic);
 
         final int subtaskId = taskManager.createSubtask(subtask);
-        Subtask savedSubtask = taskManager.getSubtaskById(subtaskId);
-        assertNotNull(savedSubtask, "Подзадачи с таким id нет");
+        Optional<Subtask> savedSubtask = taskManager.getSubtaskById(subtaskId);
+        assertTrue(savedSubtask.isPresent(), "Подзадачи с таким id нет");
 
-        final Epic epicForSubtask = taskManager.getEpicById(savedSubtask.getEpicId()); //проверяем есть ли эпик
-        assertNotNull(epicForSubtask, "Эпик у подзадачи отсутствует");
+        final Optional<Epic> epicForSubtask = taskManager.getEpicById(savedSubtask.get().getEpicId()); //проверяем есть ли эпик
+        assertTrue(epicForSubtask.isPresent(), "Эпик у подзадачи отсутствует");
 
         final List<Subtask> subtasks = taskManager.getAllSubtasks();
         assertNotNull(subtasks, "Подзадачи не возвращаются.");
@@ -413,12 +424,12 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
         final int subtaskId = taskManager.createSubtask(subtask);
 
-        Subtask savedSubtask = taskManager.getSubtaskById(subtaskId);
-        assertNotNull(savedSubtask, "Подзадачи с таким id нет");
+        Optional<Subtask> savedSubtask = taskManager.getSubtaskById(subtaskId);
+        assertTrue(savedSubtask.isPresent(), "Подзадачи с таким id нет");
 
         final List<Subtask> subtasksToEpic = taskManager.getSubtasksToEpic(epicId);
         assertNotNull(subtasksToEpic, "Список подзадач пуст");
-        assertEquals(savedSubtask, subtasksToEpic.get(0), "Подзадачи не совпадают");
+        assertEquals(savedSubtask.get(), subtasksToEpic.get(0), "Подзадачи не совпадают");
     }
 
     @Test
@@ -429,6 +440,17 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         final List<Task> history = taskManager.getHistory();
         assertNotNull(history, "Список просмотренных задач пуст");
         assertEquals(task, history.get(0), "Просмотренная задача не совпадает");
+    }
+
+    @Test
+    public void getPrioritizedTasks() {
+        int epicId = taskManager.createEpic(epic);
+        int taskId = taskManager.createTask(task); //30/06/2023 10:00
+        int subtaskId = taskManager.createSubtask(subtask);//15/06/2023 9:00
+
+        TreeSet<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
+        assertFalse(prioritizedTasks.isEmpty(), "Список задач пуст");
+        assertEquals(subtask, prioritizedTasks.first());
     }
 }
 

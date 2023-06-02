@@ -1,5 +1,3 @@
-package TaskTracker.test;
-
 import TaskTracker.model.Epic;
 import TaskTracker.model.Status;
 import TaskTracker.model.Subtask;
@@ -15,9 +13,9 @@ public class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager
         taskManager = new InMemoryTaskManager();
         epic = new Epic("Test Epic", "Test createEpic description");
         task = new Task("Test createTask", "Test createTask description", Status.NEW,
-                LocalDateTime.of(2023, 5,30, 9,0), 90);
+                LocalDateTime.of(2023, 6,30, 10,0), 90);
         subtask = new Subtask("Test createSubtask", "Test createSubtask description",
-                Status.NEW, 1, LocalDateTime.of(2023, 6,30, 9,0),
+                Status.NEW, 1, LocalDateTime.of(2023, 6,15, 9,0),
                 90);
     }
 

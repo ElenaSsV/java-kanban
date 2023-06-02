@@ -6,6 +6,7 @@ import TaskTracker.model.Task;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.TreeSet;
 
 
 public interface TaskManager {
@@ -22,11 +23,11 @@ public interface TaskManager {
 
     void updateSubtask(Subtask subtask);
 
-    Task getTaskById(int id);
+    Optional<Task> getTaskById(int id);
 
-    Epic getEpicById(int id);
+    Optional<Epic> getEpicById(int id);
 
-    Subtask getSubtaskById(int id);
+    Optional<Subtask> getSubtaskById(int id);
 
     void removeTaskById(int id);
 
@@ -49,6 +50,8 @@ public interface TaskManager {
     List<Subtask> getSubtasksToEpic(int epicId);
 
     List<Task> getHistory();
+
+    TreeSet<Task> getPrioritizedTasks();
 
 
 }

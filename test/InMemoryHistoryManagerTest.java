@@ -1,5 +1,3 @@
-package TaskTracker.test;
-
 import TaskTracker.model.Status;
 import TaskTracker.model.Task;
 import TaskTracker.service.HistoryManager;
@@ -22,13 +20,13 @@ public class InMemoryHistoryManagerTest {
     public void beforeEach() {
         historyManager = Managers.getDefaultHistory();
         task1 = new Task("Test Task1", "Test Task1 description", Status.NEW,
-                LocalDateTime.of(2023, 5,30, 9,0), 90);
+                LocalDateTime.of(2023, 6,30, 9,0), 90);
         task1.setId(1);
         task2 = new Task("Test Task2", "Test Task2 Description", Status.NEW,
-                LocalDateTime.of(2023, 5,30, 11,0), 90);
+                LocalDateTime.of(2023, 6,30, 14,0), 90);
         task2.setId(2);
         task3 = new Task("Test Task3", "Test Task3 description", Status.NEW,
-                LocalDateTime.of(2023, 5,31, 9,0), 90);
+                LocalDateTime.of(2023, 6,20, 9,0), 90);
         task3.setId(3);
     }
 

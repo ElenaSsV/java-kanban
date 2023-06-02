@@ -1,15 +1,14 @@
-package TaskTracker.test;
 import TaskTracker.model.Epic;
 import TaskTracker.model.Status;
 import TaskTracker.model.Subtask;
-import TaskTracker.service.*;
-
+import TaskTracker.service.Managers;
+import TaskTracker.service.TaskManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class EpicTest {
     private TaskManager manager;
@@ -24,10 +23,10 @@ class EpicTest {
         final int epicId = manager.createEpic(epic);
 
         subtask1 = new Subtask("Test Subtask1", "Test  description" ,
-                Status.NEW, epicId, LocalDateTime.of(2023, 5,30, 9,0), 90);
+                Status.NEW, epicId, LocalDateTime.of(2023, 6,30, 9,0), 90);
         manager.createSubtask(subtask1);
         subtask2 = new Subtask("Test Subtask2", "Test status description" ,
-                Status.NEW, epicId, LocalDateTime.of(2023, 5,31, 9,0), 90);
+                Status.NEW, epicId, LocalDateTime.of(2023, 6,30, 15,0), 90);
         manager.createSubtask(subtask2);
     }
 

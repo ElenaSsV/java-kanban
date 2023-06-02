@@ -1,7 +1,7 @@
-package TaskTracker.test;
-
+import TaskTracker.model.Epic;
 import TaskTracker.model.Status;
-import TaskTracker.model.*;
+import TaskTracker.model.Subtask;
+import TaskTracker.model.Task;
 import TaskTracker.service.FileBackedTaskManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,19 +18,19 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     public void beforeEach() {
         taskManager = new FileBackedTaskManager("backup.csv");
         epic = new Epic("Test Epic", "Test description");
-        task = new Task("Test Task", "Test  description", Status.NEW,
-                LocalDateTime.of(2023, 5,30, 9,0), 90);
+        task = new Task("Test createTask", "Test createTask description", Status.NEW,
+                LocalDateTime.of(2023, 6,30, 10,0), 90);
         subtask = new Subtask("Test Subtask", "Test description",
-                Status.NEW, 1, LocalDateTime.of(2023, 5,31, 9,0), 90);
+                Status.NEW, 1, LocalDateTime.of(2023, 6,15, 10,0), 90);
     }
 
     @Test
     public void addTaskFromFile()  {
         final int taskId = taskManager.createTask(task);
 
-        final Task savedTask = taskManager.getTaskById(taskId);
-        assertNotNull(savedTask, "Задача не найдена.");
-        assertEquals(task, savedTask, "Задачи не совпадают.");
+        final Optional<Task> savedTask = taskManager.getTaskById(taskId);
+        assertTrue(savedTask.isPresent(), "Задача не найдена.");
+        assertEquals(task, savedTask.get(), "Задачи не совпадают.");
 
         File file = new File("backup.csv");
         taskManager = FileBackedTaskManager.loadFromFile(file);
@@ -44,13 +45,15 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     public void saveAndLoadFileBackedManager() {
         int epicId = taskManager.createEpic(epic);
         int subtaskId = taskManager.createSubtask(subtask);
-        Epic savedEpic = taskManager.getEpicById(epicId);
+        Optional<Epic> savedEpic = taskManager.getEpicById(epicId);
+        assertTrue(savedEpic.isPresent());
 
         File file = new File("backup.csv");
         taskManager = FileBackedTaskManager.loadFromFile(file);
 
-        final Epic restoredEpic = taskManager.getEpicById(epicId);
-        assertEquals(savedEpic, restoredEpic, "Эпики не совпадают");
+        final Optional<Epic> restoredEpic = taskManager.getEpicById(epicId);
+        assertTrue(restoredEpic.isPresent());
+        assertEquals(savedEpic.get(), restoredEpic.get(), "Эпики не совпадают");
     }
 
     @Test
@@ -83,18 +86,20 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     @Test
     public void saveAndLoadFileBackedTaskManagerIfNoSubtasksToEpic() { //если эпик без подзадач
         final int epicId = taskManager.createEpic(epic);
-        final Epic savedEpic = taskManager.getEpicById(epicId);
+        final Optional<Epic> savedEpic = taskManager.getEpicById(epicId);
+        assertTrue(savedEpic.isPresent());
 
         File file = new File("backup.csv");
         taskManager = FileBackedTaskManager.loadFromFile(file);
 
-        final Epic restoredEpic = taskManager.getEpicById(epicId);
-        assertEquals(savedEpic, restoredEpic, "Эпики не совпадают");
+        final Optional<Epic> restoredEpic = taskManager.getEpicById(epicId);
+        assertTrue(restoredEpic.isPresent());
+        assertEquals(savedEpic.get(), restoredEpic.get(), "Эпики не совпадают");
 
-        final List<Integer> subtaskIdsToEpic = restoredEpic.getSubtaskIds();
+        final List<Integer> subtaskIdsToEpic = restoredEpic.get().getSubtaskIds();
         assertTrue(subtaskIdsToEpic.isEmpty(), "Список id сабтасков у эпика не пустой");
 
-        Status status = restoredEpic.getStatus();
+        Status status = restoredEpic.get().getStatus();
         assertEquals(Status.NEW, status, "Статусы не совпадают");
     }
 }
