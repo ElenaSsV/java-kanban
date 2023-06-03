@@ -28,12 +28,9 @@ public class Main {
 //       manager.updateSubtask(updatedSubtask);
 //        manager.createEpic(new Epic("Project peach",
 //                "Complete project"));
-        //System.out.println(manager.getSubtaskById(5));
+         System.out.println(manager.getSubtaskById(5));
 
          System.out.println(manager.getPrioritizedTasks());
-//        System.out.println(manager.getAllTasks());
-   //     System.out.println(manager.getAllEpics());
-//        manager.removeAllSubtasks();
-//        System.out.println(manager.getAllEpics());
+
     }
 }

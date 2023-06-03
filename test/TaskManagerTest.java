@@ -22,6 +22,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void createTask()  {
         final int taskId = taskManager.createTask(task);
+
         final Optional<Task> savedTask = taskManager.getTaskById(taskId);
 
         assertTrue(savedTask.isPresent(), "Задача не найдена.");
@@ -42,9 +43,10 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     public void taskShouldNotBeCreatedIfOverlapsOtherTask() {
         int taskId = taskManager.createTask(task); //startTime: 30.06.2023, 10:00, endTime: 30.06.2023, 11:30
+
         Task overLappingTask = new Task("Test createTaskWithSameStartTime",
                 "Test createTask description", Status.NEW, LocalDateTime.of(2023, 6,
-                30, 11,30), 90);
+                30, 10,30), 90);
         int task2Id = taskManager.createTask(overLappingTask);
 
         Optional<Task> savedTask = taskManager.getTaskById(task2Id);
