@@ -1,4 +1,4 @@
-package TaskTracker.service;
+package TaskTracker.exception;
 
 public class ManagerSaveException extends RuntimeException {
 

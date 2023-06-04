@@ -1,9 +1,11 @@
+import TaskTracker.exception.TaskValidationException;
 import TaskTracker.model.Epic;
 import TaskTracker.model.Status;
 import TaskTracker.model.Subtask;
 import TaskTracker.model.Task;
 import TaskTracker.service.TaskManager;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,16 +43,20 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    public void taskShouldNotBeCreatedIfOverlapsOtherTask() {
+    public void createTaskShouldThrowExceptionWhenTimeIsNotValid() {
         int taskId = taskManager.createTask(task); //startTime: 30.06.2023, 10:00, endTime: 30.06.2023, 11:30
-
         Task overLappingTask = new Task("Test createTaskWithSameStartTime",
                 "Test createTask description", Status.NEW, LocalDateTime.of(2023, 6,
                 30, 10,30), 90);
-        int task2Id = taskManager.createTask(overLappingTask);
 
-        Optional<Task> savedTask = taskManager.getTaskById(task2Id);
-        assertTrue(savedTask.isEmpty());
+        final TaskValidationException exception = assertThrows(
+                TaskValidationException.class,
+                new Executable() {
+                    @Override
+                    public void execute() throws Throwable {
+                        taskManager.createTask(overLappingTask);
+                    }
+                });
     }
 
     @Test
@@ -96,24 +102,32 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    public void subtaskShouldNotCreatedIfNoEpic() {
-        int subtaskId = taskManager.createSubtask(subtask);
-        Optional<Subtask> savedSubtask = taskManager.getSubtaskById(subtaskId);
-
-        assertFalse(savedSubtask.isPresent(), "Подзадача без эпика была создана");
+    public void createSubtaskShouldThrowExceptionIfNoEpicForSubtask() {
+        TaskValidationException exception = assertThrows(
+                TaskValidationException.class,
+                new Executable() {
+                    @Override
+                    public void execute() throws Throwable {
+                        taskManager.createSubtask(subtask);
+                    }
+                });
     }
 
     @Test
-    public void subtaskShouldNotBeCreatedIfOverlapsOtherTask() {
+    public void createSubtaskShouldThrowExceptionWhenTimeIsNotValid() {
         taskManager.createEpic(epic);
         int subtaskId = taskManager.createSubtask(subtask); //Start: 15.06.2023 9:00, End: 15.06.2023 10:30
-        Subtask subtaskWithSameStartTime = new Subtask("Test createSubtaskWithSameStartTime",
+        Subtask overLappingSubtask = new Subtask("Test createSubtaskWithSameStartTime",
                 "Test createSubtask description", Status.NEW, 1, LocalDateTime.of(2023,
                 6,15, 10,0), 90);
-        int subtask2Id = taskManager.createSubtask(subtaskWithSameStartTime);
-
-        Optional<Subtask> savedSubtask = taskManager.getSubtaskById(subtask2Id);
-        assertFalse(savedSubtask.isPresent());
+        final TaskValidationException exception = assertThrows(
+                TaskValidationException.class,
+                new Executable() {
+                    @Override
+                    public void execute() throws Throwable {
+                        taskManager.createSubtask(overLappingSubtask);
+                    }
+                });
     }
 
     @Test

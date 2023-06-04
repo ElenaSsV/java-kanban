@@ -16,7 +16,7 @@ public class Main {
         manager.createTask(new Task("Test createTask", "Test createTask description", Status.NEW,
                 LocalDateTime.of(2023, 6,30, 10,0), 90));
         manager.createSubtask( new Subtask("Test createSubtask", "Test createSubtask description",
-                Status.NEW, 1, LocalDateTime.of(2023, 6,15, 9,0),
+                Status.NEW, 1, LocalDateTime.of(2023, 6,30, 10,30),
                 90));
 //        manager.createSubtask(new Subtask("Find venue", "Find suitable venue", Status.NEW,
 //                1, LocalDateTime.of(2023, 6,30, 15,0), 90));

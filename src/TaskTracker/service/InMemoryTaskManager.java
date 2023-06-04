@@ -1,5 +1,6 @@
 package TaskTracker.service;
 
+import TaskTracker.exception.TaskValidationException;
 import TaskTracker.model.Epic;
 import TaskTracker.model.Status;
 import TaskTracker.model.Subtask;
@@ -23,7 +24,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public int createTask(Task task)   {
         if (isNotValidTime(task)) {
-            return 0;
+            throw new TaskValidationException("Ошибка создания задачи");
         }
         task.setId(id++);
         tasks.put(task.getId(), task);
@@ -42,7 +43,7 @@ public class InMemoryTaskManager implements TaskManager {
    @Override
     public int createSubtask(Subtask subtask)  {
         if (!epics.containsKey(subtask.getEpicId()) || isNotValidTime(subtask)) {
-            return 0;
+            throw new TaskValidationException("Ошибка создания подзадачи");
         }
         int epicId = subtask.getEpicId();
         subtask.setId(id++);
@@ -71,6 +72,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateEpic(Epic epic) {
+        if (!epics.containsKey(epic.getId())) {
+            return;
+        }
         epics.put(epic.getId(), epic);
     }
 
