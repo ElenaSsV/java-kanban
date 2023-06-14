@@ -61,7 +61,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateTask(Task task) {
         if (!tasks.containsKey(task.getId()) || isNotValidTime(task)) {
-            return;
+            throw new TaskValidationException("Ошибка обновения задачи");
         }
 
         Task prevVersion = tasks.get(task.getId());
@@ -81,7 +81,7 @@ public class InMemoryTaskManager implements TaskManager {
    @Override
     public void updateSubtask(Subtask subtask)  {
         if (!subtasks.containsKey(subtask.getId()) || isNotValidTime(subtask)) {
-            return;
+            throw new TaskValidationException("Ошибка обновления подзадачи");
         }
         Subtask prevVersion = subtasks.get(subtask.getId());
 
@@ -200,16 +200,25 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public List<Task> getAllTasks() {
+        if (tasks.values().isEmpty()) {
+            return new ArrayList<>();
+        }
         return new ArrayList<>(tasks.values());
     }
 
     @Override
     public List<Epic> getAllEpics() {
+        if (epics.values().isEmpty()) {
+            return new ArrayList<>();
+        }
         return new ArrayList<>(epics.values());
     }
 
     @Override
     public List<Subtask>getAllSubtasks(){
+        if (subtasks.values().isEmpty()) {
+            return new ArrayList<>();
+        }
         return new ArrayList<>(subtasks.values());
     }
 

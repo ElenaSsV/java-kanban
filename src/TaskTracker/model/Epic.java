@@ -10,28 +10,26 @@ import java.util.Objects;
 
 public class Epic extends Task {
     private List<Integer> subtaskIds = new ArrayList<>();
-    private LocalDateTime endTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(0,0));
-    private LocalDateTime defaultTime;
+    private LocalDateTime endTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(0, 0));
+    private LocalDateTime defaultTime = LocalDateTime.now();
 
     public Epic(String name, String description) {
-        super(name, description, Status.NEW, LocalDateTime.of(LocalDate.now(), LocalTime.of(0,0)),
+        super(name, description, Status.NEW, LocalDateTime.of(LocalDate.now(), LocalTime.of(0, 0)),
                 0);
     }
-
-    public void setDefaultTime(LocalDateTime time) {
-        defaultTime = time;
-    }
-
     public LocalDateTime getDefaultTime() {
         return defaultTime;
     }
 
+    public void setDefaultTime(LocalDateTime defaultTime) {
+        this.defaultTime = defaultTime;
+    }
 
     public List<Integer> getSubtaskIds() {
         return subtaskIds;
     }
 
-    public void setSubtasks(List<Integer> subtasks) {
+    public void setSubtasks (List<Integer> subtasks) {
         this.subtaskIds = subtasks;
     }
 

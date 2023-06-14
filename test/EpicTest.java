@@ -1,6 +1,7 @@
 import TaskTracker.model.Epic;
 import TaskTracker.model.Status;
 import TaskTracker.model.Subtask;
+import TaskTracker.service.InMemoryTaskManager;
 import TaskTracker.service.Managers;
 import TaskTracker.service.TaskManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +19,7 @@ class EpicTest {
 
     @BeforeEach
     public void beforeEach() {
-        manager = Managers.getDefault();
+        manager = new InMemoryTaskManager();
         epic = new Epic("Test epic", "Test epic description");
         final int epicId = manager.createEpic(epic);
 

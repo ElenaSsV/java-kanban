@@ -202,7 +202,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    public void subtaskShouldNotBeUpdatedIfOverlapsOtherTask() {
+    public void updateSubtaskShouldThrowTaskValidationExceptionIfOverlapsOtherTask() {
         int epicId = taskManager.createEpic(epic); //1
         int taskId = taskManager.createTask(task); //2
         int subtaskId = taskManager.createSubtask(subtask); //3
@@ -211,11 +211,15 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         Subtask updatedSubtask = new Subtask("Test updateSubtask", "Test updateSubtask description",
                 Status.DONE, epicId, task.getStartTime(), 90); //такое же время как у задачи
         updatedSubtask.setId(subtaskId);
-        taskManager.updateSubtask(updatedSubtask);
 
-        Optional<Subtask> savedSubtask = taskManager.getSubtaskById(subtaskId);
-        assertEquals(subtask, savedSubtask.get(), "Подзадача обновилась");
-        assertNotEquals(updatedSubtask, savedSubtask.get(), "Подзадача обновилась");
+        final TaskValidationException exception = assertThrows(
+                TaskValidationException.class,
+                new Executable() {
+                    @Override
+                    public void execute() throws Throwable {
+                        taskManager.updateSubtask(updatedSubtask);
+                    }
+                });
     }
 
     @Test
@@ -355,6 +359,9 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     public void removeAllSubtasks() {
         taskManager.removeAllSubtasks(); // пустой спиок
         final int epicId = taskManager.createEpic(epic);
+//        epic.setStartTime(LocalDateTime.of(2023,6, 14, 9, 0));
+//        epic.setEndTime(LocalDateTime.of(2023,6, 14, 9, 0));
+
         final LocalDateTime expectedEpicStartTime = epic.getStartTime();
         final LocalDateTime expectedEndTime = epic.getEndTime();
 
@@ -367,6 +374,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         assertTrue(epicForSubtask.isPresent(), "Эпик у подзадачи отсутствует");
 
         taskManager.removeAllSubtasks();
+
 
         List<Subtask> subtasks = taskManager.getAllSubtasks();
         assertTrue(subtasks.isEmpty(), "Подзадачи не удалены");

@@ -60,7 +60,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
 
         for (int i = 1; i < tasks.length; i++) {
             task = manager.fromString(tasks[i]);
-            manager.addTaskFromFile(task);
+            manager.addTask(task);
             if (task.getId() > maxId) {
                 maxId = task.getId();
             }
@@ -85,24 +85,26 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
         }
     }
 
-    private void addTaskFromFile(Task task) {
+    protected void addTask(Task task) {
         if (task instanceof Epic) {
             Epic epic = (Epic) task;
             epics.put(task.getId(), epic);
         } else if (task instanceof Subtask) {
             Subtask subtask = (Subtask) task;
             subtasks.put(subtask.getId(), subtask);
+            prioritizedTasks.add(subtask);
             epics.get(subtask.getEpicId()).getSubtaskIds().add(subtask.getId());
             updateEpicStatus(subtask.getEpicId());
             calculateEpicStartAndEndTime(subtask.getEpicId());
             calculateEpicStartAndEndTime(subtask.getEpicId());
         } else {
             tasks.put(task.getId(), task);
+            prioritizedTasks.add(task);
         }
     }
 
     private String toString(Task task) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm");
+       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm");
         return task.getId() + "," + getType(task) + "," +  task.getName() + "," + task.getStatus() + ","
                 + task.getDescription() + "," + getEpic(task) + "," + task.getStartTime().format(formatter) + ","
                 + task.getDuration() + "," + task.getEndTime().format(formatter);
