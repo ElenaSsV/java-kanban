@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 public class HttpTaskServerTest {
     private static HttpTaskServer server;
     private HttpClient client;
-
     private URI url;
 
     private final Gson gson = Managers.getGson();

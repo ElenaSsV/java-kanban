@@ -24,8 +24,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class HttpTaskServer {
     private static final int PORT = 8080;
     private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
-    private HttpServer httpServer;
-    private Gson gson;
+    private final HttpServer httpServer;
+    private final Gson gson;
 
     private TaskManager manager;
 
@@ -37,7 +37,10 @@ public class HttpTaskServer {
         httpServer.createContext("/tasks", this::handleTasks);
     }
 
-    private void handleTasks(HttpExchange exchange) throws IOException {
+    public static void main(String[] args) throws IOException {
+        new HttpTaskServer().start();
+    }
+    private void handleTasks(HttpExchange exchange)  {
         try {
             String path = exchange.getRequestURI().getPath();
             String requestedMethod = exchange.getRequestMethod();
@@ -280,9 +283,7 @@ public class HttpTaskServer {
     }
 
     private void handleGetTask(HttpExchange exchange, int taskId) throws IOException {
-        if (taskId == -1) {
-            System.out.println("Некорректный id задачи: " + taskId + ".");
-            exchange.sendResponseHeaders(400, 0);
+        if (isNotCorrectId(exchange, taskId)) {
             return;
         }
 
@@ -296,9 +297,7 @@ public class HttpTaskServer {
     }
 
     private void handleGetEpic(HttpExchange exchange, int epicId) throws IOException {
-       if (epicId == -1) {
-           System.out.println("Некорректный id эпика: " + epicId + ".");
-           exchange.sendResponseHeaders(400, 0);
+       if (isNotCorrectId(exchange, epicId)) {
            return;
        }
 
@@ -313,9 +312,7 @@ public class HttpTaskServer {
     }
 
     private void handleGetSubtask(HttpExchange exchange, int subtaskId) throws IOException {
-        if (subtaskId == -1) {
-            System.out.println("Некорректный id подзадачи: " + subtaskId + ".");
-            exchange.sendResponseHeaders(400, 0);
+        if (isNotCorrectId(exchange, subtaskId)) {
             return;
         }
 
@@ -330,11 +327,9 @@ public class HttpTaskServer {
     }
 
     private void handleDeleteTask(HttpExchange exchange, int taskId) throws IOException {
-        if (taskId == -1) {
-            System.out.println("Некорректный id задачи: " + taskId + ".");
-            exchange.sendResponseHeaders(400, 0);
-            return;
-        }
+      if (isNotCorrectId(exchange, taskId)) {
+          return;
+      }
 
         Optional<Task> task = manager.getTaskById(taskId);
         if (task.isEmpty()) {
@@ -348,9 +343,7 @@ public class HttpTaskServer {
     }
 
     private void handleDeleteEpic(HttpExchange exchange, int epicId) throws IOException {
-        if (epicId == -1) {
-            System.out.println("Некорректный id эпика: " + epicId + ".");
-            exchange.sendResponseHeaders(400, 0);
+        if (isNotCorrectId(exchange, epicId)) {
             return;
         }
 
@@ -366,9 +359,7 @@ public class HttpTaskServer {
     }
 
     private void handleDeleteSubtask(HttpExchange exchange, int subtaskId) throws IOException {
-        if (subtaskId == -1) {
-            System.out.println("Некорректный id подзадачи: " +  subtaskId + ".");
-            exchange.sendResponseHeaders(400, 0);
+        if (isNotCorrectId(exchange, subtaskId)) {
             return;
         }
 
@@ -402,9 +393,7 @@ public class HttpTaskServer {
     }
 
     private void handleGetSubtasksToEpic(HttpExchange exchange, int epicId) throws IOException {
-        if (epicId == -1) {
-            System.out.println("Некорректный id эпика: " + epicId + ".");
-            exchange.sendResponseHeaders(400, 0);
+        if (isNotCorrectId(exchange, epicId)) {
             return;
         }
         String subtasksStr = gson.toJson(manager.getSubtasksToEpic(epicId));
@@ -433,6 +422,16 @@ public class HttpTaskServer {
             return Integer.parseInt(path);
         } catch (NumberFormatException e) {
             return -1;
+        }
+    }
+
+    private boolean isNotCorrectId(HttpExchange exchange, int id) throws IOException {
+        if (id == -1) {
+            System.out.println("Передан некорректный формат id.");
+            exchange.sendResponseHeaders(400, 0);
+            return true;
+        } else {
+            return false;
         }
     }
 
